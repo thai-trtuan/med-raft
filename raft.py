@@ -26,7 +26,6 @@ import uuid
 import shutil
 from threading import Thread, Event
 
-
 log_setup()
 
 load_dotenv()  # take environment variables from .env.
