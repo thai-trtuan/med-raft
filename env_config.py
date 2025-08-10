@@ -46,7 +46,8 @@ def read_env_config_prefixed(use_prefix: str, config: dict, env: dict = os.envir
         for env_prefix in env_prefix_whitelist:
             key_prefix = f"{use_prefix}{format_prefix(env_prefix)}"
             if key.startswith(key_prefix):
-                striped_key = key.removeprefix(use_prefix)
+                #striped_key = key.removeprefix(use_prefix)
+                striped_key = key[len(use_prefix):] if key.startswith(use_prefix) else key
                 config[striped_key] = env[key]
 
 def format_prefix(prefix: str) -> str:

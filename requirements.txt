@@ -2,8 +2,10 @@ datasets==2.16.1
 openai==1.10.0
 PyPDF2==3.0.1
 transformers==4.37.2
-langchain_experimental
-langchain_openai
+# langchain_experimental
+# langchain_openai
+langchain_experimental==0.0.58
+langchain_openai==0.0.6
 python-dotenv==1.0.1
 pyyaml==6.0.1
 coloredlogs==15.0.1

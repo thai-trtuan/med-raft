@@ -50,7 +50,8 @@ class Checkpointing:
             if dir_path.is_dir() and dir_path.name.startswith("checkpoint-"):
                 num = int(dir_path.name.split("-")[1])
                 checkpoints.append(Checkpoint(dir_path, num))
-        return checkpoints
+        #return checkpoints
+        return sorted(checkpoints)  # thêm sắp xếp ở đây
 
     def has_checkpoints(self) -> bool:
         return len(self.get_checkpoints()) > 0

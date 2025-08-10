@@ -127,16 +127,22 @@ class OpenAiCompletionDatasetFormatter(DatasetFormatter):
         #newds = newds.rename_columns({'instruction': prompt_column})
         newds = newds.rename_column('instruction', prompt_column)
         #newds = newds.map(lambda examples: {completion_column: [answer + stop for answer in examples['cot_answer']]}, batched=True, desc=f"Rename fields and add {stop} token")
-        newds = newds.map(
-            lambda examples: {
-                completion_column: [
-                    (answer + stop) if answer else stop
-                    for answer in examples['cot_answer']
-                ]
-            },
-            batched=True,
-            desc=f"Rename fields and add {stop} token"
-        )
+        # newds = newds.map(
+        #     lambda examples: {
+        #         completion_column: [
+        #             (answer + stop) if answer else stop
+        #             for answer in examples['cot_answer']
+        #         ]
+        #     },
+        #     batched=True,
+        #     desc=f"Rename fields and add {stop} token"
+        # )
+        newds = newds.map(lambda examples: {
+            completion_column: [
+                (answer + stop) if answer else "" for answer in examples['cot_answer']
+            ]
+        }, batched=True, desc=f"Rename fields and add {stop} token")
+
         return _remove_all_columns_but(newds, [prompt_column, completion_column])
 
 class OpenAiChatDatasetFormatter(OpenAiCompletionDatasetFormatter):
@@ -189,28 +195,38 @@ class EvalDatasetFormatter(DatasetFormatter):
         newds = ds.filter(lambda example: example['cot_answer'] and example['instruction'] and example['context'], desc="Filter out empty examples")
         newds = newds.rename_columns({'context': 'context_sentences'})
         #newds = newds.map(lambda examples: {"gold_final_answer": [extract_final_answer(answer) for answer in examples['cot_answer']]}, batched=True)
-        newds = newds.map(
-            lambda examples: {
-                "gold_final_answer": [
-                    extract_final_answer(answer) if answer else None
-                    for answer in examples['cot_answer']
-                ]
-            },
-            batched=True
-        )
+        # newds = newds.map(
+        #     lambda examples: {
+        #         "gold_final_answer": [
+        #             extract_final_answer(answer) if answer else None
+        #             for answer in examples['cot_answer']
+        #         ]
+        #     },
+        #     batched=True
+        # )
+        newds = newds.map(lambda examples: {
+            "gold_final_answer": [
+                extract_final_answer(answer) if answer else "" for answer in examples['cot_answer']
+            ]
+        }, batched=True)
         keep_columns = ['question', 'gold_final_answer', 'context']
         if 'answer' in newds.column_names:
             [keep_columns.append(col) for col in ['answer', 'final_answer']]
             #newds = newds.map(lambda examples: {"final_answer": [extract_final_answer(answer) for answer in examples['answer']]}, batched=True)
-            newds = newds.map(
-                lambda examples: {
-                    "final_answer": [
-                        extract_final_answer(answer) if answer else None
-                        for answer in examples['answer']
-                    ]
-                },
-                batched=True
-            )
+            # newds = newds.map(
+            #     lambda examples: {
+            #         "final_answer": [
+            #             extract_final_answer(answer) if answer else None
+            #             for answer in examples['answer']
+            #         ]
+            #     },
+            #     batched=True
+            # )
+            newds = newds.map(lambda examples: {
+                "final_answer": [
+                    extract_final_answer(answer) if answer else "" for answer in examples['answer']
+                ]
+            }, batched=True)
         newds = newds.map(lambda examples: {"context": [extract_context(instruction) for instruction in examples['instruction']]}, batched=True)
         return _remove_all_columns_but(newds, keep_columns)
 

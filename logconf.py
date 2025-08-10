@@ -15,11 +15,20 @@ def log_setup():
     with open(conf_path, 'rt') as f:
         config = yaml.safe_load(f.read())
 
+    # # Nếu thiếu coloredlogs, fallback sang formatter mặc định
+    # try:
+    #     import importlib
+    #     importlib.import_module("coloredlogs")
+    # except ImportError:
+    #     if "formatters" in config and "colored" in config["formatters"]:
+    #         config["formatters"]["colored"] = {
+    #             "format": "%(asctime)s %(levelname)5s [%(progress)4s] %(name)s %(message)s"
+    #         }
+
     # Configure the logging module with the config file
     logging.config.dictConfig(config)
 
     install_default_record_field(logging, 'progress', '')
-
 
 def install_default_record_field(logging, field, value):
     """
