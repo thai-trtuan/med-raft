@@ -116,9 +116,27 @@ class OpenAiCompletionDatasetFormatter(DatasetFormatter):
     https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset
     """
     def format(self, ds: Dataset, prompt_column: str = 'prompt', completion_column : str = 'completion', stop: str = '<STOP>') -> Dataset:
-        newds = ds.filter(lambda example: example['cot_answer'] and example['instruction'], desc="Filter out empty examples")
-        newds = newds.rename_columns({'instruction': prompt_column})
-        newds = newds.map(lambda examples: {completion_column: [answer + stop for answer in examples['cot_answer']]}, batched=True, desc=f"Rename fields and add {stop} token")
+        #newds = ds.filter(lambda example: example['cot_answer'] and example['instruction'], desc="Filter out empty examples")
+        newds = ds.filter(
+            lambda example: (
+                example.get('cot_answer') and all(answer for answer in example['cot_answer'])
+                and example.get('instruction')
+            ),
+            desc = "Filter out empty examples"
+        )
+        #newds = newds.rename_columns({'instruction': prompt_column})
+        newds = newds.rename_column('instruction', prompt_column)
+        #newds = newds.map(lambda examples: {completion_column: [answer + stop for answer in examples['cot_answer']]}, batched=True, desc=f"Rename fields and add {stop} token")
+        newds = newds.map(
+            lambda examples: {
+                completion_column: [
+                    (answer + stop) if answer else stop
+                    for answer in examples['cot_answer']
+                ]
+            },
+            batched=True,
+            desc=f"Rename fields and add {stop} token"
+        )
         return _remove_all_columns_but(newds, [prompt_column, completion_column])
 
 class OpenAiChatDatasetFormatter(OpenAiCompletionDatasetFormatter):
@@ -140,11 +158,19 @@ class OpenAiChatDatasetFormatter(OpenAiCompletionDatasetFormatter):
         newds = newds.map(format_messages)
         return _remove_all_columns_but(newds, ['messages'])
 
-def extract_final_answer(cot_answer: str) -> str:
+# def extract_final_answer(cot_answer: str) -> str:
+#     """
+#     Extracts the final answer from the cot_answer field
+#     """
+#     if cot_answer:
+#         return cot_answer.split("<ANSWER>: ")[-1]
+#     return None
+
+def extract_final_answer(cot_answer: str) -> str | None:
     """
     Extracts the final answer from the cot_answer field
     """
-    if cot_answer:
+    if isinstance(cot_answer, str) and cot_answer.strip():
         return cot_answer.split("<ANSWER>: ")[-1]
     return None
 
@@ -162,11 +188,29 @@ class EvalDatasetFormatter(DatasetFormatter):
     def format(self, ds: Dataset) -> Dataset:
         newds = ds.filter(lambda example: example['cot_answer'] and example['instruction'] and example['context'], desc="Filter out empty examples")
         newds = newds.rename_columns({'context': 'context_sentences'})
-        newds = newds.map(lambda examples: {"gold_final_answer": [extract_final_answer(answer) for answer in examples['cot_answer']]}, batched=True)
+        #newds = newds.map(lambda examples: {"gold_final_answer": [extract_final_answer(answer) for answer in examples['cot_answer']]}, batched=True)
+        newds = newds.map(
+            lambda examples: {
+                "gold_final_answer": [
+                    extract_final_answer(answer) if answer else None
+                    for answer in examples['cot_answer']
+                ]
+            },
+            batched=True
+        )
         keep_columns = ['question', 'gold_final_answer', 'context']
         if 'answer' in newds.column_names:
             [keep_columns.append(col) for col in ['answer', 'final_answer']]
-            newds = newds.map(lambda examples: {"final_answer": [extract_final_answer(answer) for answer in examples['answer']]}, batched=True)
+            #newds = newds.map(lambda examples: {"final_answer": [extract_final_answer(answer) for answer in examples['answer']]}, batched=True)
+            newds = newds.map(
+                lambda examples: {
+                    "final_answer": [
+                        extract_final_answer(answer) if answer else None
+                        for answer in examples['answer']
+                    ]
+                },
+                batched=True
+            )
         newds = newds.map(lambda examples: {"context": [extract_context(instruction) for instruction in examples['instruction']]}, batched=True)
         return _remove_all_columns_but(newds, keep_columns)
 

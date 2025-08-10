@@ -5,6 +5,7 @@ from openai import AzureOpenAI, OpenAI
 import logging
 from env_config import read_env_config, set_env
 from os import environ, getenv
+import os
 import time
 from threading import Lock
 from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
@@ -13,63 +14,130 @@ from azure.identity import get_bearer_token_provider
 
 logger = logging.getLogger("client_utils")
 
+
 def build_openai_client(env_prefix : str = "COMPLETION", **kwargs: Any) -> OpenAI:
     """
-    Build OpenAI client based on the environment variables.
+    Build OpenAI client based on environment variables.
+    Compatible with openai>=1.0.0.
     """
 
     kwargs = _remove_empty_values(kwargs)
     env = read_env_config(env_prefix)
+    
     with set_env(**env):
         if is_azure():
-            auth_args = _get_azure_auth_client_args()
-            client = AzureOpenAI(**auth_args, **kwargs)
+            # Lấy thông tin từ Azure biến môi trường
+            api_key = os.getenv("AZURE_OPENAI_API_KEY")
+            endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+            api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
+            
+            if not api_key or not endpoint:
+                raise ValueError("Azure OpenAI requires AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT")
+
+            # AzureOpenAI trong openai>=1.x yêu cầu base_url thay vì endpoint cũ
+            client = AzureOpenAI(
+                api_key=api_key,
+                api_version=api_version,
+                azure_endpoint=endpoint
+            )
         else:
-            client = OpenAI(**kwargs)
+            # OpenAI thường
+            api_key = kwargs.pop("api_key", os.getenv("OPENAI_API_KEY"))
+            if not api_key:
+                raise ValueError("OpenAI API key not found. Set OPENAI_API_KEY env var.")
+            
+            # Bỏ hẳn tham số proxies (vì API mới không hỗ trợ)
+            client = OpenAI(api_key=api_key)
+
         return client
 
+# def build_openai_client(env_prefix : str = "COMPLETION", **kwargs: Any) -> OpenAI:
+#     """
+#     #Build OpenAI client based on the environment variables.
+#     """
+
+#     kwargs = _remove_empty_values(kwargs)
+#     env = read_env_config(env_prefix)
+#     with set_env(**env):
+#         if is_azure():
+#             auth_args = _get_azure_auth_client_args()
+#             client = AzureOpenAI(**auth_args, **kwargs)
+#         else:
+#             client = OpenAI(**kwargs)
+#         return client
+
+# def build_langchain_embeddings(**kwargs: Any) -> OpenAIEmbeddings:
+#     """
+#     Build OpenAI embeddings client based on the environment variables.
+#     """
+
+#     kwargs = _remove_empty_values(kwargs)
+#     env = read_env_config("EMBEDDING")
+#     with set_env(**env):
+#         if is_azure():
+#             auth_args = _get_azure_auth_client_args()
+#             client = AzureOpenAIEmbeddings(**auth_args, **kwargs)
+#         else:
+#             client = OpenAIEmbeddings(**kwargs)
+#         return client
+    
 def build_langchain_embeddings(**kwargs: Any) -> OpenAIEmbeddings:
     """
     Build OpenAI embeddings client based on the environment variables.
     """
-
     kwargs = _remove_empty_values(kwargs)
     env = read_env_config("EMBEDDING")
     with set_env(**env):
         if is_azure():
-            auth_args = _get_azure_auth_client_args()
-            client = AzureOpenAIEmbeddings(**auth_args, **kwargs)
+            api_key = os.getenv("AZURE_OPENAI_API_KEY")
+            endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+            api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
+
+            if not api_key or not endpoint:
+                raise ValueError("Azure OpenAI Embeddings requires AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT")
+
+            client = AzureOpenAIEmbeddings(
+                api_key=api_key,
+                api_version=api_version,
+                azure_endpoint=endpoint,
+                **kwargs
+            )
         else:
-            client = OpenAIEmbeddings(**kwargs)
+            api_key = kwargs.pop("api_key", os.getenv("OPENAI_API_KEY"))
+            if not api_key:
+                raise ValueError("OpenAI API key not found. Set OPENAI_API_KEY env var.")
+
+            client = OpenAIEmbeddings(api_key=api_key, **kwargs)
+
         return client
 
 def _remove_empty_values(d: dict) -> dict:
     return {k: v for k, v in d.items() if v is not None}
 
-def _get_azure_auth_client_args() -> dict:
-    """Handle Azure OpenAI Keyless, Managed Identity and Key based authentication
-    https://techcommunity.microsoft.com/t5/microsoft-developer-community/using-keyless-authentication-with-azure-openai/ba-p/4111521
-    """
-    client_args = {}
-    if getenv("AZURE_OPENAI_KEY"):
-        logger.info("Using Azure OpenAI Key based authentication")
-        client_args["api_key"] = getenv("AZURE_OPENAI_KEY")
-    else:
-        if client_id := getenv("AZURE_OPENAI_CLIENT_ID"):
-            # Authenticate using a user-assigned managed identity on Azure
-            logger.info("Using Azure OpenAI Managed Identity Keyless authentication")
-            azure_credential = ManagedIdentityCredential(client_id=client_id)
-        else:
-            # Authenticate using the default Azure credential chain
-            logger.info("Using Azure OpenAI Default Azure Credential Keyless authentication")
-            azure_credential = DefaultAzureCredential()
+# def _get_azure_auth_client_args() -> dict:
+#     """Handle Azure OpenAI Keyless, Managed Identity and Key based authentication
+#     https://techcommunity.microsoft.com/t5/microsoft-developer-community/using-keyless-authentication-with-azure-openai/ba-p/4111521
+#     """
+#     client_args = {}
+#     if getenv("AZURE_OPENAI_KEY"):
+#         logger.info("Using Azure OpenAI Key based authentication")
+#         client_args["api_key"] = getenv("AZURE_OPENAI_KEY")
+#     else:
+#         if client_id := getenv("AZURE_OPENAI_CLIENT_ID"):
+#             # Authenticate using a user-assigned managed identity on Azure
+#             logger.info("Using Azure OpenAI Managed Identity Keyless authentication")
+#             azure_credential = ManagedIdentityCredential(client_id=client_id)
+#         else:
+#             # Authenticate using the default Azure credential chain
+#             logger.info("Using Azure OpenAI Default Azure Credential Keyless authentication")
+#             azure_credential = DefaultAzureCredential()
 
-        client_args["azure_ad_token_provider"] = get_bearer_token_provider(
-            azure_credential, "https://cognitiveservices.azure.com/.default")
-    client_args["api_version"] = getenv("AZURE_OPENAI_API_VERSION") or "2024-02-15-preview"
-    client_args["azure_endpoint"] = getenv("AZURE_OPENAI_ENDPOINT")
-    client_args["azure_deployment"] = getenv("AZURE_OPENAI_DEPLOYMENT")
-    return client_args
+#         client_args["azure_ad_token_provider"] = get_bearer_token_provider(
+#             azure_credential, "https://cognitiveservices.azure.com/.default")
+#     client_args["api_version"] = getenv("AZURE_OPENAI_API_VERSION") or "2024-02-15-preview"
+#     client_args["azure_endpoint"] = getenv("AZURE_OPENAI_ENDPOINT")
+#     client_args["azure_deployment"] = getenv("AZURE_OPENAI_DEPLOYMENT")
+#     return client_args
 
 def is_azure():
     azure = "AZURE_OPENAI_ENDPOINT" in environ or "AZURE_OPENAI_KEY" in environ or "AZURE_OPENAI_AD_TOKEN" in environ

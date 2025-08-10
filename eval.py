@@ -1,6 +1,19 @@
 from typing import Any
-from openai import RateLimitError
-from openai.types.chat import ChatCompletionMessageParam
+# from openai import RateLimitError
+# from openai.types.chat import ChatCompletionMessageParam
+# Exceptions: prefer openai.error (newer SDK), but provide fallback for older layouts
+try:
+    from openai.error import RateLimitError
+except Exception:
+    try:
+        # older layouts sometimes exposed directly
+        from openai import RateLimitError
+    except Exception:
+        # If import fails (very unlikely in a correct env), define a dummy to avoid NameError;
+        # tenacity will then not specifically catch the real RateLimitError but code keeps running.
+        class RateLimitError(Exception):
+            pass
+
 import multiprocessing as mp
 import time
 import argparse
@@ -75,8 +88,20 @@ if __name__ == "__main__":
         return input_json
 
     # Evaluate a chat model
-    def get_openai_response_chat(prompt: str | list[ChatCompletionMessageParam]) -> str | None :
-        messages = [{"role": "user", "content": prompt}]
+    # def get_openai_response_chat(prompt: str | list[ChatCompletionMessageParam]) -> str | None :
+    #     messages = [{"role": "user", "content": prompt}]
+    #     response = completions_completer(
+    #         model=model,
+    #         messages=messages,
+    #         temperature=0.2,
+    #         max_tokens=1024,
+    #         stop='<STOP>'
+    #     )
+    #     return response.choices[0].message.content
+
+    def get_openai_response_chat(prompt: str | list[dict] | Any) -> str | None:
+        # nếu prompt là chuỗi -> đóng gói thành messages; nếu là list -> dùng trực tiếp (giả sử list of dicts)
+        messages = [{"role": "user", "content": prompt}] if isinstance(prompt, str) else prompt
         response = completions_completer(
             model=model,
             messages=messages,
