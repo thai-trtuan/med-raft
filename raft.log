@@ -2,3 +2,46 @@
 2025-08-08 20:07:52,364  INFO [  0%] env_config  - OPENAI_API_KEY=................................................................................................................................................................h_wA
 2025-08-08 20:37:48,417  INFO [  0%] env_config Resolved OpenAI env vars with 'COMPLETION' prefix:
 2025-08-08 20:37:48,418  INFO [  0%] env_config  - OPENAI_API_KEY=................................................................................................................................................................h_wA
+2025-10-28 19:15:41,981  INFO [  0%] env_config Resolved OpenAI env vars with 'COMPLETION' prefix:
+2025-10-28 19:15:41,981  INFO [  0%] env_config  - OPENAI_API_KEY=................................................................................................................................................................1yYA
+2025-10-28 19:17:45,500  INFO [  0%] env_config Resolved OpenAI env vars with 'COMPLETION' prefix:
+2025-10-28 19:17:45,501  INFO [  0%] env_config  - OPENAI_API_KEY=................................................................................................................................................................1yYA
+2025-10-28 19:17:45,521  INFO [  0%] raft Using checkpoint chunks C:\Users\Thai\Documents\med-raft\output\my_raft_dataset-checkpoints\chunks
+2025-10-28 19:17:45,521  INFO [  0%] raft Retrieving chunks from sample_data of type pdf using the text-embedding-3-small model.
+2025-10-28 19:17:45,522  INFO [  0%] env_config Resolved OpenAI env vars with 'EMBEDDING' prefix:
+2025-10-28 19:17:45,522  INFO [  0%] env_config  - OPENAI_API_KEY=................................................................................................................................................................1yYA
+2025-10-28 19:17:56,494  INFO [    ] openai._base_client Retrying request to /embeddings in 0.875039 seconds
+2025-10-28 19:17:59,634  INFO [    ] openai._base_client Retrying request to /embeddings in 1.953808 seconds
+2025-10-28 19:24:32,293  INFO [  0%] env_config Resolved OpenAI env vars with 'COMPLETION' prefix:
+2025-10-28 19:24:32,308  INFO [  0%] env_config  - OPENAI_API_KEY=................................................................................................................................................................WBwA
+2025-10-28 19:24:32,308  INFO [  0%] raft Using checkpoint chunks C:\Users\Thai\Documents\med-raft\output\my_raft_dataset-checkpoints\chunks
+2025-10-28 19:24:32,308  INFO [  0%] raft Retrieving chunks from sample_data of type pdf using the text-embedding-3-small model.
+2025-10-28 19:24:32,308  INFO [  0%] env_config Resolved OpenAI env vars with 'EMBEDDING' prefix:
+2025-10-28 19:24:32,308  INFO [  0%] env_config  - OPENAI_API_KEY=................................................................................................................................................................WBwA
+2025-10-28 19:24:38,751  INFO [    ] openai._base_client Retrying request to /embeddings in 0.866854 seconds
+2025-10-28 19:24:42,278  INFO [    ] openai._base_client Retrying request to /embeddings in 1.754454 seconds
+2025-10-28 20:00:17,976  INFO [  0%] env_config Resolved OpenAI env vars with 'COMPLETION' prefix:
+2025-10-28 20:00:17,976  INFO [  0%] env_config  - OPENAI_API_KEY=................................................................................................................................................................WBwA
+2025-10-28 20:00:17,996  INFO [  0%] raft Using checkpoint chunks C:\Users\Thai\Documents\med-raft\output\my_raft_dataset-checkpoints\chunks
+2025-10-28 20:00:17,996  INFO [  0%] raft Retrieving chunks from sample_data of type pdf using the text-embedding-3-small model.
+2025-10-28 20:00:17,997  INFO [  0%] env_config Resolved OpenAI env vars with 'EMBEDDING' prefix:
+2025-10-28 20:00:17,997  INFO [  0%] env_config  - OPENAI_API_KEY=................................................................................................................................................................WBwA
+2025-10-28 20:00:30,646  INFO [    ] openai._base_client Retrying request to /embeddings in 0.804104 seconds
+2025-10-28 20:00:49,068  INFO [    ] openai._base_client Retrying request to /embeddings in 0.951294 seconds
+2025-10-28 20:00:55,660  INFO [  0%] raft Using system prompt key gpt
+2025-10-28 20:00:55,660  INFO [  0%] raft Using 2 worker threads
+2025-10-28 20:00:55,667  INFO [  0%] raft Will stop early as soon as the QA threshold is met: 100
+2025-10-28 20:07:03,986  INFO [  0%] raft Met threshold 100 >= 100 questions, stopping generation
+2025-10-28 20:07:41,997  INFO [  0%] raft Consumed 80613 prompt tokens, 24690 completion tokens, 105303 total tokens
+2025-10-28 20:20:47,836  INFO [  0%] env_config Resolved OpenAI env vars with 'COMPLETION' prefix:
+2025-10-28 20:20:47,836  INFO [  0%] env_config  - OPENAI_API_KEY=................................................................................................................................................................WBwA
+2025-10-28 20:20:47,852  INFO [  0%] raft Using checkpoint chunks C:\Users\Thai\Documents\med-raft\output\my_raft_dataset-checkpoints\chunks
+2025-10-28 20:20:47,887  INFO [  0%] raft Using system prompt key gpt
+2025-10-28 20:20:47,887  INFO [  0%] raft Using 2 worker threads
+2025-10-28 20:20:47,950  INFO [  0%] raft Resuming generation from chunk 23/604 and 115 questions
+2025-10-28 20:20:47,950  INFO [  0%] raft Will stop early as soon as the QA threshold is met: 100
+2025-10-28 20:21:18,079  INFO [  0%] raft Met threshold 115 >= 100 questions, stopping generation
+2025-10-28 20:21:48,477  INFO [  0%] raft Consumed 0 prompt tokens, 0 completion tokens, 0 total tokens
+2025-10-28 20:21:48,598  INFO [  0%] raft Generated 100 question/answer/CoT/documents samples
+2025-10-28 20:21:48,598  INFO [  0%] raft Dataset saved to C:\Users\Thai\Documents\med-raft\output\my_raft_dataset
+2025-10-28 20:21:48,601  INFO [  0%] raft Done in 60.76s
